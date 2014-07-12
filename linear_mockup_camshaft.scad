@@ -1,3 +1,5 @@
+include <MCAD/involute_gears.scad>
+
 indeterminate = 1e6;
 infinitesimal = 0.001;
 x = [1,0,0];
@@ -21,6 +23,9 @@ max_height = 15;
 cam_d = bearing_od + min_width + camshaft_d/2;
 camshaft_hobbedrod_space = cam_d + clearance + hobbedrod_d/2;
 camshaft_bearing_space = cam_d + clearance - bearing_od/2;
+
+bull_r = 46*275/360;
+pinion_r = 10*275/360;
 
 mockup();
 
@@ -48,11 +53,15 @@ module mockup(){
 
 	//bull gear
 	translate(-20*z)
-	translate(-(camshaft_hobbedrod_space)*x){
-		cylinder(d=80, h=7);
-		translate((80/2+20/2)*x){
-			cylinder(d=20, h=7);
-			translate(-10*z)
+	translate(-(camshaft_hobbedrod_space)*x)
+	rotate(110*z){
+		bull();
+		translate((bull_r+pinion_r)*x){
+			//pinion
+			pinion();
+			rotate(-110*z)
+			translate(20*z)
+			mirror(z)
 			motor();
 		}
 	}
@@ -60,6 +69,21 @@ module mockup(){
 
 module camshaft_motor_mount(){
 	
+}
+
+module bull(){
+	difference(){
+		gear (number_of_teeth=45,
+			circular_pitch=275,
+			circles=3,
+			bore_diameter=8);
+	}
+}
+module pinion(){
+	gear (number_of_teeth=10,
+		circular_pitch=275,
+		circles=0,
+		hub_diameter=12);
 }
 
 module motor(){
