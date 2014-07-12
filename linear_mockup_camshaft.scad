@@ -1,4 +1,3 @@
-
 indeterminate = 1e6;
 infinitesimal = 0.001;
 x = [1,0,0];
@@ -30,7 +29,7 @@ module mockup(){
 	translate(-(camshaft_hobbedrod_space)*x)
 	cylinder(d=hobbedrod_d, h=5*4*bearing_h);
 
-	for(i=[0:5]){
+	for(i=[0:4]){
 		translate(4*bearing_h*i*z)
 		rotate(360/6*i*z){
 			cam();
@@ -38,11 +37,39 @@ module mockup(){
 				bearing();
 		}
 
-		translate(bearing_h/2*z)
+		translate((bearing_h+filament_d)/2*z-1.5*z)
 		translate(-(camshaft_hobbedrod_space)*x)
 		translate(4*bearing_h*i*z)
 			filament_guide();
 	}
+	translate(5*4*bearing_h*z)
+	mirror(z)
+	motor();
+
+	//bull gear
+	translate(-20*z)
+	translate(-(camshaft_hobbedrod_space)*x){
+		cylinder(d=80, h=7);
+		translate((80/2+20/2)*x){
+			cylinder(d=20, h=7);
+			translate(-10*z)
+			motor();
+		}
+	}
+}
+
+module camshaft_motor_mount(){
+	
+}
+
+module motor(){
+	translate(-42/2*z)
+	cube(42, center=true);
+	cylinder(d=22,h=10);
+	for(i=[-1,1])
+		for(j=[-1,1])
+			translate([15.5*i,15.5*j,0])
+			cylinder(d=3,h=10);
 }
 module filament_guide(){
 	difference(){
@@ -58,7 +85,7 @@ module filament_guide(){
 		cylinder(d=bearing_od, h=bearing_h, center=true);
 		//cam
 		translate((camshaft_hobbedrod_space)*x)
-		cylinder(r=camshaft_hobbedrod_space-hobbedrod_d/2+filament_d, h=bearing_h, center=true);
+		cylinder(r=camshaft_hobbedrod_space-hobbedrod_d/2+filament_d, h=bearing_h+filament_d, center=true);
 	}
 }
 
