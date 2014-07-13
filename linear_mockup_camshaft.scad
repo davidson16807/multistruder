@@ -31,6 +31,7 @@ mockup();
 
 module mockup(){
 	cylinder(d=camshaft_d, h=5*4*bearing_h);
+	translate(-30*z)
 	translate(-(camshaft_hobbedrod_space)*x)
 	cylinder(d=hobbedrod_d, h=5*4*bearing_h);
 
@@ -51,18 +52,17 @@ module mockup(){
 	mirror(z)
 	motor();
 
-	//bull gear
-	translate(-20*z)
+	translate(-30*z)
 	translate(-(camshaft_hobbedrod_space)*x)
 	rotate(110*z){
 		bull();
-		translate((bull_r+pinion_r)*x){
+		translate((bull_r+pinion_r)*x)
+		translate(20*z)
+		mirror(z)
+		rotate(-110*z){
 			//pinion
 			pinion();
-			rotate(-110*z)
-			translate(20*z)
-			mirror(z)
-			motor();
+			motor(gear_h=0);
 		}
 	}
 }
@@ -75,26 +75,51 @@ module bull(){
 	difference(){
 		gear (number_of_teeth=45,
 			circular_pitch=275,
-			circles=3,
-			bore_diameter=8);
+			circles=5,
+				bore_diameter=8,
+			rim_thickness=8,
+			hub_diameter=20,
+			hub_thickness=22);
+		//nut catch
+		translate(8.5*x + (17-6/2)*z)
+		translate(-6/2*(x+y))
+			cube([2.4,6,indeterminate]);
+		//set screw
+		translate(17*z)
+		rotate(90*y)
+			cylinder(d=3, h=indeterminate,$fn=10);
 	}
 }
+
 module pinion(){
-	gear (number_of_teeth=10,
-		circular_pitch=275,
-		circles=0,
-		hub_diameter=12);
+	difference(){
+		gear (number_of_teeth=10,
+			circular_pitch=275,
+			circles=0,
+			rim_thickness=20,
+			gear_thickness=0,
+			hub_diameter=20,
+			hub_thickness=11);
+		//nut catch
+		translate(6*x + (5+6/2)/2*z)
+			cube([2.4,6,5+6/2], center=true);
+		//set screw
+		translate(5*z)
+		rotate(90*y)
+			cylinder(d=3, h=indeterminate,$fn=10);
+	}
 }
 
-module motor(){
+module motor(gear_h=10){
 	translate(-42/2*z)
 	cube(42, center=true);
-	cylinder(d=22,h=10);
+	cylinder(d=22,h=gear_h);
 	for(i=[-1,1])
 		for(j=[-1,1])
 			translate([15.5*i,15.5*j,0])
 			cylinder(d=3,h=10);
 }
+
 module filament_guide(){
 	difference(){
 		//structure
