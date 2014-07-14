@@ -35,7 +35,7 @@ module mockup(){
 	translate(-(camshaft_hobbedrod_space)*x)
 	cylinder(d=hobbedrod_d, h=5*4*bearing_h);
 
-	for(i=[0:4]){
+	for(i=[0:3]){
 		translate(4*bearing_h*i*z)
 		rotate(360/6*i*z){
 			cam();
@@ -48,18 +48,18 @@ module mockup(){
 		translate(4*bearing_h*i*z)
 			filament_guide();
 	}
-	translate(5*4*bearing_h*z)
+	translate(4*4*bearing_h*z)
 	mirror(z)
 	motor();
 
 	translate(-30*z)
 	translate(-(camshaft_hobbedrod_space)*x)
-	rotate(110*z){
+	rotate(-180*z){
 		bull();
 		translate((bull_r+pinion_r)*x)
 		translate(20*z)
 		mirror(z)
-		rotate(-110*z){
+		rotate(180*z){
 			//pinion
 			pinion();
 			motor(gear_h=0);
@@ -81,9 +81,9 @@ module bull(){
 			hub_diameter=20,
 			hub_thickness=22);
 		//nut catch
-		translate(8.5*x + (17-6/2)*z)
-		translate(-6/2*(x+y))
-			cube([2.4,6,indeterminate]);
+		translate(8.5*x + (17-7/2)*z)
+		translate(-7/2*(x+y))
+			cube([3.2,7,indeterminate]);
 		//set screw
 		translate(17*z)
 		rotate(90*y)
@@ -101,8 +101,8 @@ module pinion(){
 			hub_diameter=20,
 			hub_thickness=11);
 		//nut catch
-		translate(6*x + (5+6/2)/2*z)
-			cube([2.4,6,5+6/2], center=true);
+		translate(6*x + (5+7/2)/2*z)
+			cube([3.2,7,5+7/2], center=true);
 		//set screw
 		translate(5*z)
 		rotate(90*y)
@@ -123,7 +123,23 @@ module motor(gear_h=10){
 module filament_guide(){
 	difference(){
 		//structure
-		cube([bearing_od+2*min_width, bearing_od+2*min_width, 3*bearing_h], center=true);
+		translate(6*y)
+		cube([bearing_od+2*min_width, 2*bearing_od, 3*bearing_h], center=true);
+		translate((hobbedrod_d-filament_d)/2*x){
+			//guide
+			rotate(90*x)
+			cylinder(d=3.2, h=indeterminate, center=true, $fn=10);
+			
+			translate((bearing_od)*y){
+				//nut catch
+				translate([-3.5,-1.6,-3.5])
+				cube([7,3.2,indeterminate]);
+	
+				//funnel
+				rotate(-90*x)
+				cylinder(d1=3.2, d2=6, h=6, $fn=15);
+			}
+		}
 		//hobbed rod
 		cylinder(d=hobbedrod_d, h=indeterminate, center=true);
 		//bearing 1
