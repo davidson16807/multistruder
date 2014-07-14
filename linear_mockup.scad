@@ -7,12 +7,18 @@ y = [0,1,0];
 z = [0,0,1];
 
 
-bearing_id = 8;
-bearing_od = 22;
-bearing_h = 7;
+roller_bearing_id = 8;
+roller_bearing_od = 22;
+roller_bearing_h = 7;
+
+linear_bearing_id = 8;
+linear_bearing_od = 15;
+linear_bearing_h = 24;
 
 leadscrew_d = 5;
-leadscrew_nut_d = 10;
+leadscrew_nut_d = 9;
+leadscrew_nut_h = 5;
+
 guiderod_d = 8;
 hobbedrod_d = 8;
 filament_d = 2;
@@ -20,9 +26,8 @@ filament_d = 2;
 clearance = 1;
 min_width = 3;
 min_height = 1;
-max_height = 15;
 
-leadscrew_hobbedrod_space = leadscrew_nut_d/2 + min_width + bearing_od + hobbedrod_d/2;
+leadscrew_hobbedrod_space = leadscrew_nut_d/2 + min_width + roller_bearing_od + hobbedrod_d/2;
 leadscrew_guiderod_space = 42/2 + guiderod_d/2;
 
 bull_r = 46*275/360;
@@ -31,27 +36,37 @@ pinion_r = 10*275/360;
 mockup();
 
 module mockup(){
-	cylinder(d=leadscrew_d, h=4*4*bearing_h);
+	//leadscrew
+	translate(-roller_bearing_h*z)
+		cylinder(d=leadscrew_d, h=4*4*roller_bearing_h);
+	//cam
+	translate(1*4*roller_bearing_h*z)
+	cam();
 
-	translate(4*4*bearing_h*z)
+	//leadscrew motor
+	translate(4*4*roller_bearing_h*z)
 	mirror(z)
 	motor();
 	
+	//guide rod
 	translate(leadscrew_guiderod_space*x)
-		cylinder(d=8, h=4*4*bearing_h);
-	
+	translate(-roller_bearing_h*z)
+		cylinder(d=guiderod_d, h=4*4*roller_bearing_h);
+
 	translate(-(leadscrew_hobbedrod_space)*x){
 		for(i=[0:3]){
-			translate((bearing_h+filament_d)/2*z-1.5*z)
-			translate(4*bearing_h*i*z){
+			translate((roller_bearing_h+filament_d)/2*z-1.5*z)
+			translate(4*roller_bearing_h*i*z){
 				filament_guide();
 				filament_idler();
 			}
 		}
 	
 		translate(-30*z){
-			cylinder(d=hobbedrod_d, h=5*4*bearing_h);
+			//hobbed rod
+			cylinder(d=hobbedrod_d, h=5*4*roller_bearing_h);
 
+			//power train
 			rotate(-180*z){
 				bull();
 				translate((bull_r+pinion_r)*x)
@@ -67,9 +82,28 @@ module mockup(){
 	}
 }
 
-module camshaft_motor_mount(){
+module cam(){
+	difference(){
+		//body
+		hull(){
+			rotate(90*x)
+			cylinder(d=leadscrew_nut_d+2*min_width, h=linear_bearing_od + 2*min_width, center=true);
 
+			translate(leadscrew_guiderod_space*x)
+				cube([linear_bearing_od + 2*min_width, linear_bearing_od + 2*min_width, linear_bearing_h], center=true);
+		}
+		//leadscrew
+			cylinder(d=leadscrew_d, h=indeterminate, center=true);
+		//nut catch
+		translate(-[leadscrew_nut_d, leadscrew_nut_d, leadscrew_nut_h]/2)
+			cube([leadscrew_nut_d, indeterminate, leadscrew_nut_h]);
+		//bearing
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=linear_bearing_od, h=indeterminate, center=true);
+	}
 }
+
+
 
 module bull(){
 	difference(){
@@ -123,19 +157,19 @@ module filament_idler(){
 	translate(-min_height*z)
 	difference(){
 		hull(){
-			translate([bearing_od/2, -(bearing_od + min_width)/2, 0])
-				cylinder(d=3+2*min_width, h=bearing_h+min_height, center=true);
-			translate(((bearing_od + hobbedrod_d)/2+2)*x)
-				cylinder(d=bearing_od, h=bearing_h+min_height, center=true);
+			translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
+				cylinder(d=3+2*min_width, h=roller_bearing_h+min_height, center=true);
+			translate(((roller_bearing_od + hobbedrod_d)/2+2)*x)
+				cylinder(d=roller_bearing_od, h=roller_bearing_h+min_height, center=true);
 		}
 
-		translate([bearing_od/2, -(bearing_od + min_width)/2, 0])
+		translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
 			cylinder(d=3,h=30,center=true);
-		translate(((bearing_od + hobbedrod_d)/2)*x)
+		translate(((roller_bearing_od + hobbedrod_d)/2)*x)
 		translate(min_height*z)
 			difference(){
-				cylinder(d=bearing_od, h=bearing_h+min_height, center=true);
-				cylinder(d=bearing_id, h=indeterminate, center=true);
+				cylinder(d=roller_bearing_od+clearance, h=roller_bearing_h+min_height, center=true);
+				cylinder(d=roller_bearing_id, h=indeterminate, center=true);
 			}
 	}
 }
@@ -144,14 +178,14 @@ module filament_guide(){
 	difference(){
 		//structure
 		translate([1,5,0])
-		cube([bearing_od+2*min_width, 2*bearing_od, 3*bearing_h], center=true);
+		cube([roller_bearing_od+2*min_width, 2*roller_bearing_od, 3*roller_bearing_h], center=true);
 
 		translate((hobbedrod_d-filament_d)/2*x){
 			//guide
 			rotate(90*x)
 			cylinder(d=3.2, h=indeterminate, center=true, $fn=10);
 
-			translate((bearing_od)*y){
+			translate((roller_bearing_od)*y){
 				//nut catch
 				translate([-3.5,-1.6,-3.5])
 				cube([7,3.2,indeterminate]);
@@ -163,31 +197,30 @@ module filament_guide(){
 		}
 		//hobbed rod
 		cylinder(d=hobbedrod_d, h=indeterminate, center=true);
-		//bearing 1
-		translate(bearing_h*z)
-		cylinder(d=bearing_od, h=bearing_h, center=true);
-		//bearing 2
-		translate(-bearing_h*z)
-		cylinder(d=bearing_od, h=bearing_h, center=true);
-		//bearing clamp clearance
+		//roller_bearing 1
+		translate(roller_bearing_h*z)
+		cylinder(d=roller_bearing_od, h=roller_bearing_h, center=true);
+		//roller_bearing 2
+		translate(-roller_bearing_h*z)
+		cylinder(d=roller_bearing_od, h=roller_bearing_h, center=true);
+		//roller_bearing clamp clearance
 
 		//clamp
-		translate((bearing_od + hobbedrod_d)/2*x - min_height*z){
+		translate((roller_bearing_od + hobbedrod_d)/2*x - min_height*z){
 			//axle
-			cylinder(d=bearing_id + 2*(clearance+min_width), h=indeterminate, center=true);
-			//bearing
-			cylinder(r=bearing_od/2 + filament_d, h=bearing_h + min_height +filament_d, center=true);
+			cylinder(d=roller_bearing_id + 2*(clearance+min_width), h=indeterminate, center=true);
+			//roller_bearing
+			cylinder(r=roller_bearing_od/2 + filament_d, h=roller_bearing_h + min_height +filament_d, center=true);
 			//clamp proper
-			cube([2*(3+2*min_width), bearing_od + 2*(3 + 2*min_width), bearing_h+min_height +filament_d], center=true);
+			cube([2*(3+2*min_width), roller_bearing_od + 2*(3 + 2*min_width), roller_bearing_h+min_height +filament_d], center=true);
 		}
 	}
-
 }
 
 
-module bearing(){
+module roller_bearing(){
 	difference(){
-		cylinder(d=bearing_od, h=bearing_h);
-		cylinder(d=bearing_id, h=bearing_h);
+		cylinder(d=roller_bearing_od, h=roller_bearing_h);
+		cylinder(d=roller_bearing_id, h=roller_bearing_h);
 	}
 }
