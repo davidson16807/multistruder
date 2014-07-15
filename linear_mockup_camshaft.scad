@@ -7,107 +7,69 @@ y = [0,1,0];
 z = [0,0,1];
 
 
-roller_bearing_id = 8;
-roller_bearing_od = 22;
-roller_bearing_h = 7;
+bearing_id = 8;
+bearing_od = 22;
+bearing_h = 7;
 
-linear_bearing_id = 8;
-linear_bearing_od = 15;
-linear_bearing_h = 24;
-
-leadscrew_d = 5;
-leadscrew_nut_d = 9;
-leadscrew_nut_h = 5;
-
-guiderod_d = 8;
+camshaft_d = 5;
 hobbedrod_d = 8;
 filament_d = 2;
 
 clearance = 1;
 min_width = 3;
 min_height = 1;
+max_height = 15;
 
-leadscrew_hobbedrod_space = leadscrew_nut_d/2 + min_width + roller_bearing_od + hobbedrod_d/2;
-leadscrew_guiderod_space = 42/2 + guiderod_d/2;
+cam_d = bearing_od + min_width + camshaft_d/2;
+camshaft_hobbedrod_space = cam_d + clearance + hobbedrod_d/2;
+camshaft_bearing_space = cam_d + clearance - bearing_od/2;
 
-bull_r = 45*275/360;
+bull_r = 46*275/360;
 pinion_r = 10*275/360;
-
-powertrain_angle = 180+20;
 
 mockup();
 
 module mockup(){
-	//leadscrew
-	translate(-roller_bearing_h*z)
-		cylinder(d=leadscrew_d, h=4*4*roller_bearing_h);
-	//cam
-	translate(1*4*roller_bearing_h*z)
-	cam();
+	cylinder(d=camshaft_d, h=5*4*bearing_h);
+	translate(-30*z)
+	translate(-(camshaft_hobbedrod_space)*x)
+	cylinder(d=hobbedrod_d, h=5*4*bearing_h);
 
-	//leadscrew motor
-	rotate(-powertrain_angle*z)
-	translate(4*4*roller_bearing_h*z)
+	for(i=[0:3]){
+		translate(4*bearing_h*i*z)
+		rotate(360/6*i*z){
+			cam();
+			translate(camshaft_bearing_space*x)
+				bearing();
+		}
+
+		translate((bearing_h+filament_d)/2*z-1.5*z)
+		translate(-(camshaft_hobbedrod_space)*x)
+		translate(4*bearing_h*i*z)
+			filament_guide();
+	}
+	translate(4*4*bearing_h*z)
 	mirror(z)
 	motor();
-	
-	//guide rod
-	rotate(-90*z)
-	translate(leadscrew_guiderod_space*x)
-	translate(-roller_bearing_h*z)
-		cylinder(d=guiderod_d, h=4*4*roller_bearing_h);
 
-	translate(-(leadscrew_hobbedrod_space)*x){
-		for(i=[0:3]){
-			translate((roller_bearing_h+filament_d)/2*z-1.5*z)
-			translate(4*roller_bearing_h*i*z){
-				filament_guide();
-				filament_idler();
-			}
-		}
-	
-		translate(-30*z){
-			//hobbed rod
-			cylinder(d=hobbedrod_d, h=5*4*roller_bearing_h);
-
-			//power train
-			rotate(-powertrain_angle*z){
-				bull();
-				translate((bull_r+pinion_r)*x)
-				translate(20*z)
-				mirror(z){
-					//pinion
-					pinion();
-					rotate((0)*z)
-						motor(gear_h=0);
-				}
-			}
+	translate(-30*z)
+	translate(-(camshaft_hobbedrod_space)*x)
+	rotate(-180*z){
+		bull();
+		translate((bull_r+pinion_r)*x)
+		translate(20*z)
+		mirror(z)
+		rotate(180*z){
+			//pinion
+			pinion();
+			motor(gear_h=0);
 		}
 	}
 }
 
-module cam(){
-	difference(){
-		//body
-		hull(){
-			rotate(90*x)
-			cylinder(d=leadscrew_nut_d+2*min_width, h=linear_bearing_od + 2*min_width, center=true);
-
-			translate(leadscrew_guiderod_space*x)
-				cube([linear_bearing_od + 2*min_width, linear_bearing_od + 2*min_width, linear_bearing_h], center=true);
-		}
-		//leadscrew
-			cylinder(d=leadscrew_d, h=indeterminate, center=true);
-		//nut catch
-		translate(-[leadscrew_nut_d, leadscrew_nut_d, leadscrew_nut_h]/2)
-			cube([leadscrew_nut_d, indeterminate, leadscrew_nut_h]);
-		//bearing
-		translate(leadscrew_guiderod_space*x)
-			cylinder(d=linear_bearing_od, h=indeterminate, center=true);
-	}
+module camshaft_motor_mount(){
+	
 }
-
-
 
 module bull(){
 	difference(){
@@ -157,78 +119,109 @@ module motor(gear_h=10){
 			translate([15.5*i,15.5*j,0])
 			cylinder(d=3,h=10);
 }
-module filament_idler(){
-	translate(-min_height*z)
-	difference(){
-		hull(){
-			translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
-				cylinder(d=3+2*min_width, h=roller_bearing_h+min_height, center=true);
-			translate(((roller_bearing_od + hobbedrod_d)/2+2)*x)
-				cylinder(d=roller_bearing_od, h=roller_bearing_h+min_height, center=true);
-		}
-
-		translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
-			cylinder(d=3,h=30,center=true);
-		translate(((roller_bearing_od + hobbedrod_d)/2)*x)
-		translate(min_height*z)
-			difference(){
-				cylinder(d=roller_bearing_od+clearance, h=roller_bearing_h+min_height, center=true);
-				cylinder(d=roller_bearing_id, h=indeterminate, center=true);
-			}
-	}
-}
 
 module filament_guide(){
 	difference(){
 		//structure
-		translate([1,5,0])
-		cube([roller_bearing_od+2*min_width, 2*roller_bearing_od, 3*roller_bearing_h], center=true);
-
+		translate(6*y)
+		cube([bearing_od+2*min_width, 2*bearing_od, 3*bearing_h], center=true);
 		translate((hobbedrod_d-filament_d)/2*x){
 			//guide
 			rotate(90*x)
 			cylinder(d=3.2, h=indeterminate, center=true, $fn=10);
-
-			translate((roller_bearing_od)*y){
+			
+			translate((bearing_od)*y){
 				//nut catch
 				translate([-3.5,-1.6,-3.5])
 				cube([7,3.2,indeterminate]);
-
+	
 				//funnel
 				rotate(-90*x)
-				cylinder(d=4.1, h=6, $fn=10);
+				cylinder(d1=3.2, d2=6, h=6, $fn=15);
 			}
 		}
 		//hobbed rod
 		cylinder(d=hobbedrod_d, h=indeterminate, center=true);
-		//roller_bearing 1
-		translate(roller_bearing_h*z)
-		cylinder(d=roller_bearing_od, h=roller_bearing_h, center=true);
-		//roller_bearing 2
-		translate(-roller_bearing_h*z)
-		cylinder(d=roller_bearing_od, h=roller_bearing_h, center=true);
-		//roller_bearing clamp clearance
+		//bearing 1
+		translate(bearing_h*z)
+		cylinder(d=bearing_od, h=bearing_h, center=true);
+		//bearing 2
+		translate(-bearing_h*z)
+		cylinder(d=bearing_od, h=bearing_h, center=true);
+		//cam
+		translate((camshaft_hobbedrod_space)*x)
+		cylinder(r=camshaft_hobbedrod_space-hobbedrod_d/2+filament_d, h=bearing_h+filament_d, center=true);
+	}
+}
 
-		//clamp
-		translate((roller_bearing_od + hobbedrod_d)/2*x - min_height*z){
-			//axle
-			cylinder(d=roller_bearing_id + 2*(clearance+min_width), h=indeterminate, center=true);
-			//roller_bearing
-			cylinder(r=roller_bearing_od/2 + filament_d, h=roller_bearing_h + min_height +filament_d, center=true);
-			//clamp proper
-			cube([2*(3+2*min_width), roller_bearing_od + 2*(3 + 2*min_width), roller_bearing_h+min_height +filament_d], center=true);
+module support(){
+	difference(){
+		hull(){
+			cylinder(d=camshaft_d+2*min_width, h=bearing_h);
+			translate(-(camshaft_hobbedrod_space)*x)
+			cylinder(d=hobbedrod_d+2*min_width, h=bearing_h);
+			translate(max_height/2*z)
+				translate((camshaft_hobbedrod_space+2)*y){
+				cube([camshaft_d+2*min_width, camshaft_d+2*min_width, max_height], center=true);
+				translate(-(camshaft_hobbedrod_space)*x)
+				cube([hobbedrod_d+2*min_width, camshaft_d+2*min_width, max_height], center=true);
+			}
 		}
-			//screw
+		cylinder(d=camshaft_d, h=indeterminate, center=true);
+		translate(-(camshaft_hobbedrod_space)*x)
+		cylinder(d=hobbedrod_d, h=indeterminate, center=true);
+	}
+}	
 
-		translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
-			cylinder(d=3,h=30,center=true);
+
+
+module bearing(){
+	difference(){
+		cylinder(d=bearing_od, h=bearing_h);
+		cylinder(d=bearing_id, h=bearing_h);
 	}
 }
 
 
-module roller_bearing(){
+module cam(){
 	difference(){
-		cylinder(d=roller_bearing_od, h=roller_bearing_h);
-		cylinder(d=roller_bearing_id, h=roller_bearing_h);
+		union(){
+			//shaft interface
+			cylinder(d=camshaft_d+2*min_width, h=bearing_h);
+			//outer wall
+			difference(){
+				translate(-min_height*z)
+					cylinder(r=cam_d, h=bearing_h+min_height);
+				cylinder(r=cam_d-min_width, h=indeterminate, center=true);
+			}
+			//bearing wall
+			translate(-min_height*z)
+			intersection(){
+				cylinder(r=cam_d, h=bearing_h+min_height);
+				translate(camshaft_bearing_space*x)
+					cylinder(d=bearing_od+2*(clearance+min_width), h=bearing_h+min_height);
+			}
+			//gear spokes
+			difference(){
+				translate(-min_height*z)
+					cylinder(r=cam_d, h=3);
+
+				for(i=[1:3])
+				rotate(360/3*i*z)
+				translate(camshaft_bearing_space*x)
+					cylinder(d=bearing_od+2, h=indeterminate, center=true);
+			}
+		}
+		translate(camshaft_bearing_space*x){
+			//bearing
+			difference(){
+				cylinder(d=bearing_od+2*clearance, h=bearing_h);
+				cylinder(d=bearing_id, h=bearing_h);
+			}
+			//screw
+			cylinder(d=3, h=indeterminate, center=true);
+		}
+		//screw
+		cylinder(d=camshaft_d, h=indeterminate, center=true);
 	}
 }
