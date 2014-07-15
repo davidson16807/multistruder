@@ -27,29 +27,36 @@ clearance = 1;
 min_width = 3;
 min_height = 1;
 
-leadscrew_hobbedrod_space = leadscrew_nut_d/2 + min_width + roller_bearing_od + hobbedrod_d/2;
+leadscrew_hobbedrod_space = leadscrew_nut_d/2 + 2*min_width + roller_bearing_od + hobbedrod_d/2;
 leadscrew_guiderod_space = linear_bearing_od+2*min_width;
 
 bull_r = 45*275/360;
 pinion_r = 10*275/360;
 
-powertrain_angle = 135;
+powertrain_angle = 135;		//angle formed between leadscrew, hobbed rod, and pinion of powertrain motor
 
 mockup();
 
 module mockup(){
+
 	//leadscrew
 	translate(-roller_bearing_h*z)
 		cylinder(d=leadscrew_d, h=4*4*roller_bearing_h);
+
 	//cam
 	translate(1*4*roller_bearing_h*z)
 	cam();
 
-	//leadscrew motor
-	rotate(-powertrain_angle*z)
-	translate(4*4*roller_bearing_h*z)
-	mirror(z)
-	motor();
+	translate(4*4*roller_bearing_h*z){
+		//leadscrew motor
+		rotate(-powertrain_angle*z)
+		mirror(z)
+		motor();
+
+		//leadscrew motor mount
+		mirror(z)
+		leadscrew_motor_mount();
+	}
 
 	//guide rod
 	translate(leadscrew_guiderod_space*x)
@@ -57,6 +64,7 @@ module mockup(){
 		cylinder(d=guiderod_d, h=4*4*roller_bearing_h);
 
 	translate(-(leadscrew_hobbedrod_space)*x){
+		//filament guides
 		for(i=[0:3]){
 			translate((roller_bearing_h+filament_d)/2*z-1.5*z)
 			translate(4*roller_bearing_h*i*z){
@@ -82,6 +90,41 @@ module mockup(){
 				}
 			}
 		}
+	}
+}
+
+module powertrain_motor_mount(){
+	
+}
+
+module leadscrew_motor_mount(){
+	difference(){
+		union(){
+			linear_extrude(height=roller_bearing_h)
+			projection(cut=false)
+			hull(){
+				rotate(-powertrain_angle*z)
+					motor();
+
+				translate(-(leadscrew_hobbedrod_space)*x)
+					filament_guide();
+
+				translate(leadscrew_guiderod_space*x)
+					cylinder(d=guiderod_d+2*min_width, h=indeterminate);
+			}
+			
+			translate(leadscrew_guiderod_space*x)
+				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
+		}
+		translate(-infinitesimal*z)
+		rotate(-powertrain_angle*z)
+		motor();
+
+		translate(-(leadscrew_hobbedrod_space)*x)
+			cylinder(d=roller_bearing_od, h=roller_bearing_h);
+		translate(min_height*z)
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d, h=indeterminate);
 	}
 }
 
@@ -156,13 +199,14 @@ module motor(gear_h=10){
 			translate([15.5*i,15.5*j,0])
 			cylinder(d=3,h=10);
 }
+
 module filament_idler(){
 	translate(-min_height*z)
 	difference(){
 		hull(){
 			translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
 				cylinder(d=3+2*min_width, h=roller_bearing_h+min_height, center=true);
-			translate(((roller_bearing_od + hobbedrod_d)/2+2)*x)
+			translate(((roller_bearing_od + hobbedrod_d)/2+min_width)*x)
 				cylinder(d=roller_bearing_od, h=roller_bearing_h+min_height, center=true);
 		}
 
@@ -178,12 +222,13 @@ module filament_idler(){
 }
 
 module filament_guide(){
-	intersection(){
 	difference(){
-		//structure
-		translate([1,4,0])
-		cube([roller_bearing_od+2*min_width, 2*roller_bearing_od, 3*roller_bearing_h], center=true);
+		intersection(){
+			//structure
+			cube([roller_bearing_od+2*min_width, indeterminate, 3*roller_bearing_h], center=true);
 
+			cylinder(r=bull_r+pinion_r-42/2-clearance, h=indeterminate, center=true);
+		}
 		translate((hobbedrod_d-filament_d)/2*x){
 			//guide
 			rotate(90*x)
@@ -224,8 +269,6 @@ roller_bearing_h+min_height +filament_d], center=true);
 		//screw
 		translate([roller_bearing_od/2, -(roller_bearing_od + min_width)/2, 0])
 			cylinder(d=3,h=30,center=true);
-	}
-		cylinder(r=bull_r+pinion_r-42/2-clearance, h=indeterminate, center=true);
 	}
 }
 
