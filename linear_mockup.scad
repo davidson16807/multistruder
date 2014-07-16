@@ -21,7 +21,10 @@ leadscrew_nut_h = 5;
 
 guiderod_d = 8;
 hobbedrod_d = 8;
+
 filament_d = 2;
+filament_n = 4;
+filament_space = 4*roller_bearing_h;
 
 clearance = 1;
 min_width = 3;
@@ -35,47 +38,51 @@ pinion_r = 10*275/360;
 
 powertrain_angle = 135;		//angle formed between leadscrew, hobbed rod, and pinion of powertrain motor
 
+
 mockup();
 
 module mockup(){
 
-	//leadscrew
-	translate(-roller_bearing_h*z)
-		cylinder(d=leadscrew_d, h=4*4*roller_bearing_h);
+	translate(-filament_space/2*z){
+		//leadscrew
+		cylinder(d=leadscrew_d, h=filament_n*filament_space);
+	
+		//guide rod
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d, h=(filament_n+1)*filament_space);
+	}
+
+	translate(-2*roller_bearing_h*z){
+		powertrain_motor_mount();
+	}
 
 	//cam
-	translate(1*4*roller_bearing_h*z)
+	translate(1*filament_space*z)
 	cam();
 
-	translate(4*4*roller_bearing_h*z){
+	translate(filament_n*filament_space*z)
+	mirror(z){
 		//leadscrew motor
 		rotate(-powertrain_angle*z)
-		mirror(z)
 		motor();
 
 		//leadscrew motor mount
-		mirror(z)
 		leadscrew_motor_mount();
 	}
 
-	//guide rod
-	translate(leadscrew_guiderod_space*x)
-	translate(-roller_bearing_h*z)
-		cylinder(d=guiderod_d, h=4*4*roller_bearing_h);
-
 	translate(-(leadscrew_hobbedrod_space)*x){
 		//filament guides
-		for(i=[0:3]){
-			translate((roller_bearing_h+filament_d)/2*z-1.5*z)
-			translate(4*roller_bearing_h*i*z){
+		for(i=[0:filament_n-1]){
+			translate(((roller_bearing_h+filament_d)/2-1.5)*z)
+			translate(i*filament_space*z){
 				filament_guide();
 				filament_idler();
 			}
 		}
 
-		translate(-30*z){
+		translate(-filament_space*z){
 			//hobbed rod
-			cylinder(d=hobbedrod_d, h=5*4*roller_bearing_h);
+			cylinder(d=hobbedrod_d, h=(filament_n+1)*filament_space);
 
 			//power train
 			rotate(-powertrain_angle*z){
@@ -85,8 +92,7 @@ module mockup(){
 				mirror(z){
 					//pinion
 					pinion();
-					rotate((0)*z)
-						motor(gear_h=0);
+					motor(gear_h=0);
 				}
 			}
 		}
@@ -94,7 +100,43 @@ module mockup(){
 }
 
 module powertrain_motor_mount(){
-	
+	difference(){
+		union(){
+			linear_extrude(height=roller_bearing_h)
+			//powertrain motor mount
+			projection(cut=false)
+			hull(){
+				cylinder(d=leadscrew_d+2*(clearance+min_width), h=indeterminate);	
+				rotate(-powertrain_angle*z)
+					motor();
+				translate(leadscrew_guiderod_space*x)
+					cylinder(d=guiderod_d+2*min_width, h=indeterminate);
+				translate(-(leadscrew_hobbedrod_space)*x){
+					filament_guide();
+					rotate(-powertrain_angle*z)
+					translate((bull_r+pinion_r)*x)
+						motor();
+				}
+			}
+			translate(leadscrew_guiderod_space*x)
+				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
+		}
+		
+		cylinder(d=leadscrew_d+2*clearance, h=indeterminate);	
+		*rotate(-powertrain_angle*z)
+			motor();
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d, h=indeterminate);
+		translate(-(leadscrew_hobbedrod_space)*x){
+			cylinder(d=roller_bearing_od, h=indeterminate);
+			rotate(-powertrain_angle*z)
+			translate((bull_r+pinion_r)*x)
+			translate(-infinitesimal*z)
+				motor();
+		}
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d, h=indeterminate);
+	}
 }
 
 module leadscrew_motor_mount(){
@@ -159,13 +201,13 @@ module bull(){
 				bore_diameter=8,
 			rim_thickness=8,
 			hub_diameter=20,
-			hub_thickness=22);
+			hub_thickness=15);
 		//nut catch
 		translate(8.5*x + (17-7/2)*z)
 		translate(-7/2*(x+y))
 			cube([3.2,7,indeterminate]);
 		//set screw
-		translate(17*z)
+		translate(10*z)
 		rotate(90*y)
 			cylinder(d=3, h=indeterminate,$fn=10);
 	}
@@ -179,7 +221,7 @@ module pinion(){
 			rim_thickness=20,
 			gear_thickness=0,
 			hub_diameter=20,
-			hub_thickness=11);
+			hub_thickness=10);
 		//nut catch
 		translate(6*x + (5+7/2)/2*z)
 			cube([3.2,7,5+7/2], center=true);
