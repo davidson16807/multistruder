@@ -60,9 +60,9 @@ module mockup(){
 	translate(1*filament_space*z)
 	cam();
 
-	translate(filament_n*filament_space*z)
-	mirror(z){
+	translate(filament_n*filament_space*z){
 		//leadscrew motor
+		mirror(z)
 		rotate(-powertrain_angle*z)
 		motor();
 
@@ -101,26 +101,7 @@ module mockup(){
 
 module powertrain_motor_mount(){
 	difference(){
-		union(){
-			linear_extrude(height=roller_bearing_h)
-			//powertrain motor mount
-			projection(cut=false)
-			hull(){
-				cylinder(d=leadscrew_d+2*(clearance+min_width), h=indeterminate);	
-				rotate(-powertrain_angle*z)
-					motor();
-				translate(leadscrew_guiderod_space*x)
-					cylinder(d=guiderod_d+2*min_width, h=indeterminate);
-				translate(-(leadscrew_hobbedrod_space)*x){
-					filament_guide();
-					rotate(-powertrain_angle*z)
-					translate((bull_r+pinion_r)*x)
-						motor();
-				}
-			}
-			translate(leadscrew_guiderod_space*x)
-				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
-		}
+		motor_mount_template();
 		
 		cylinder(d=leadscrew_d+2*clearance, h=indeterminate);	
 		*rotate(-powertrain_angle*z)
@@ -140,33 +121,47 @@ module powertrain_motor_mount(){
 }
 
 module leadscrew_motor_mount(){
+	mirror(z)
 	difference(){
-		union(){
-			linear_extrude(height=roller_bearing_h)
-			projection(cut=false)
-			hull(){
-				rotate(-powertrain_angle*z)
-					motor();
+		motor_mount_template();
 
-				translate(-(leadscrew_hobbedrod_space)*x)
-					filament_guide();
-
-				translate(leadscrew_guiderod_space*x)
-					cylinder(d=guiderod_d+2*min_width, h=indeterminate);
-			}
-			
-			translate(leadscrew_guiderod_space*x)
-				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
-		}
-		translate(-infinitesimal*z)
+		*cylinder(d=leadscrew_d+2*clearance, h=indeterminate);	
 		rotate(-powertrain_angle*z)
-		motor();
-
-		translate(-(leadscrew_hobbedrod_space)*x)
-			cylinder(d=roller_bearing_od, h=roller_bearing_h);
-		translate(min_height*z)
+			motor();
 		translate(leadscrew_guiderod_space*x)
 			cylinder(d=guiderod_d, h=indeterminate);
+		translate(-(leadscrew_hobbedrod_space)*x){
+			cylinder(d=roller_bearing_od, h=indeterminate);
+			*rotate(-powertrain_angle*z)
+			translate((bull_r+pinion_r)*x)
+			translate(-infinitesimal*z)
+				motor();
+		}
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d, h=indeterminate);
+	}
+}
+
+module motor_mount_template(){
+	union(){
+		linear_extrude(height=roller_bearing_h)
+		//powertrain motor mount
+		projection(cut=false)
+		hull(){
+			cylinder(d=leadscrew_d+2*(clearance+min_width), h=indeterminate);	
+			rotate(-powertrain_angle*z)
+				motor();
+			translate(leadscrew_guiderod_space*x)
+				cylinder(d=guiderod_d+2*min_width, h=indeterminate);
+			translate(-(leadscrew_hobbedrod_space)*x){
+				filament_guide();
+				rotate(-powertrain_angle*z)
+				translate((bull_r+pinion_r)*x)
+					motor();
+			}
+		}
+		translate(leadscrew_guiderod_space*x)
+			cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
 	}
 }
 
