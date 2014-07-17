@@ -34,11 +34,13 @@ min_height = 1;
 
 motor_x = 42;
 
-leadscrew_hobbedrod_space = leadscrew_nut_d/2 + 2*min_width + roller_bearing_od + hobbedrod_d/2;
-leadscrew_guiderod_space = linear_bearing_od+2*min_width;
-
 bull_r = 45*275/360;
 pinion_r = 10*275/360;
+
+hobbedrod_idler_edge_space = hobbedrod_d/2 + roller_bearing_od + min_width;
+leadscrew_hobbedrod_space = bull_r+pinion_r;
+leadscrew_cam_edge_space = leadscrew_hobbedrod_space - hobbedrod_idler_edge_space;
+leadscrew_guiderod_space = linear_bearing_od/2 + 2*min_width + leadscrew_nut_d/2;
 
 powertrain_angle = 135;		//angle formed between leadscrew, hobbed rod, and pinion of powertrain motor
 
@@ -105,8 +107,12 @@ module mockup(){
 
 module powertrain_motor_mount(){
 	difference(){
-		motor_mount_template();
-		
+		union(){
+			motor_mount_template();
+			translate((-linear_bearing_h/2 + roller_bearing_h)*z)
+			translate(leadscrew_guiderod_space*x)
+				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h, center=true);
+		}
 		cylinder(d=leadscrew_d+2*clearance, h=indeterminate);	
 		*rotate(-powertrain_angle*z)
 			motor();
@@ -116,11 +122,10 @@ module powertrain_motor_mount(){
 			cylinder(d=roller_bearing_od, h=indeterminate);
 			rotate(-powertrain_angle*z)
 			translate((bull_r+pinion_r)*x)
-			translate(-infinitesimal*z)
 				motor();
 		}
 		translate(leadscrew_guiderod_space*x)
-			cylinder(d=guiderod_d, h=indeterminate);
+			cylinder(d=guiderod_d, h=indeterminate, center=true);
 		//screws
 		assign($fn=10)
 		translate(-(leadscrew_hobbedrod_space)*x){
@@ -137,8 +142,11 @@ module powertrain_motor_mount(){
 module leadscrew_motor_mount(){
 	mirror(z)
 	difference(){
-		motor_mount_template();
-
+		union(){
+			motor_mount_template();
+			translate(leadscrew_guiderod_space*x)
+				cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
+		}
 		*cylinder(d=leadscrew_d+2*clearance, h=indeterminate);	
 		rotate(-powertrain_angle*z)
 			motor();
@@ -167,7 +175,6 @@ module leadscrew_motor_mount(){
 }
 
 module motor_mount_template(){
-	union(){
 		linear_extrude(height=roller_bearing_h)
 		//powertrain motor mount
 		projection(cut=false)
@@ -184,15 +191,13 @@ module motor_mount_template(){
 					cube(motor_x+2*filament_d+4*clearance, center=true);
 			}
 		}
-		translate(leadscrew_guiderod_space*x)
-			cylinder(d=guiderod_d+2*min_width, h=linear_bearing_h);
-	}
 }
 
 module cam(){
 	difference(){
 		//body
 		hull(){
+			translate(-(leadscrew_cam_edge_space-(leadscrew_nut_d+2*min_width)/2)*x)
 			rotate(90*x)
 			cylinder(d=leadscrew_nut_d+2*min_width, h=linear_bearing_od + 2*min_width, center=true);
 
@@ -257,8 +262,11 @@ module motor(gear_h=10){
 	cylinder(d=22,h=gear_h);
 	for(i=[-1,1])
 		for(j=[-1,1])
-			translate([15.5*i,15.5*j,0])
-			cylinder(d=3,h=10);
+			translate([15.5*i,15.5*j,0]){
+				cylinder(d=3,h=7);
+				translate(4*z)
+				cylinder(d=6,h=3);
+			}
 }
 
 module filament_idler(){
