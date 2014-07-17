@@ -26,7 +26,7 @@ screw_d = 3;
 
 filament_d = 2;
 filament_n = 4;
-filament_space = 4*roller_bearing_h;
+filament_space = linear_bearing_h;
 
 clearance = 1;
 min_width = 3;
@@ -294,7 +294,7 @@ module filament_guide(){
 	difference(){
 		intersection(){
 			//structure
-			cube([roller_bearing_od+3+2*(min_width), indeterminate, 3*roller_bearing_h], center=true);
+			cube([roller_bearing_od+3+2*(min_width), indeterminate, linear_bearing_h], center=true);
 
 			cylinder(r=bull_r+pinion_r-motor_x/2-clearance/2, h=3*roller_bearing_h, center=true);
 		}
