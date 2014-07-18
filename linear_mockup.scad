@@ -52,41 +52,40 @@ mockup();
 
 module mockup(){
 
-	translate(-filament_space/2*z){
-		//leadscrew
-		cylinder(d=leadscrew_d, h=filament_n*filament_space);
+	//leadscrew
+	cylinder(d=leadscrew_d, h=filament_n*filament_space);
 	
-		//guide rod
-		translate(leadscrew_guiderod_space*x)
-			cylinder(d=guiderod_d, h=(filament_n+1)*filament_space);
-	}
+	//guide rod
+	translate(leadscrew_guiderod_space*x)
+		cylinder(d=guiderod_d, h=(filament_n+1)*filament_space);
 
-	translate(-2*roller_bearing_h*z){
+	translate(-roller_bearing_h*z)
 		powertrain_motor_mount();
-	}
 
-	//cam
-	translate(1*filament_space*z)
-	cam();
 
-	translate(filament_n*filament_space*z){
+	translate((filament_n*filament_space + roller_bearing_h)*z){
+		//leadscrew motor mount
+		leadscrew_motor_mount();
+
 		//leadscrew motor
 		mirror(z)
 		rotate(-powertrain_angle*z)
 		motor();
-
-		//leadscrew motor mount
-		leadscrew_motor_mount();
 	}
 
+	//cam
+	translate(filament_space/2*z)
+	translate(1*filament_space*z)
+		cam();
+
 	translate(-(leadscrew_hobbedrod_space)*x){
-		//filament guides
-		for(i=[0:filament_n-1]){
-			translate(((roller_bearing_h+filament_d)/2-1.5)*z)
-			translate(i*filament_space*z){
-				filament_guide();
-				filament_idler();
-			}
+		translate(filament_space/2*z){
+			//filament guides
+			for(i=[0:filament_n-1])
+				translate(i*filament_space*z){
+					filament_guide();
+					filament_idler();
+				}
 		}
 
 		translate(-filament_space*z){
@@ -96,12 +95,14 @@ module mockup(){
 			//power train
 			rotate(-powertrain_angle*z){
 				bull();
-				translate((bull_r+pinion_r)*x)
-				translate(20*z)
-				mirror(z){
-					//pinion
-					pinion();
-					motor(gear_h=0);
+				translate((bull_r+pinion_r)*x){
+					translate(20*z)
+					mirror(z)
+						//pinion
+						pinion();
+					translate(filament_space*z)
+					mirror(z)
+						motor(gear_h=0);
 				}
 			}
 		}
