@@ -73,6 +73,7 @@ module mockup(){
 
 		//leadscrew motor
 		mirror(z)
+		rotate(-powertrain_angle*z)
 		motor();
 	}
 
