@@ -64,12 +64,15 @@ module mockup(){
 
 
 	translate((filament_n*filament_space + roller_bearing_h)*z){
+		//hobbedrod collar
+		translate(-leadscrew_hobbedrod_space*x)
+			hobbedrod_collar();
+
 		//leadscrew motor mount
 		leadscrew_motor_mount();
 
 		//leadscrew motor
 		mirror(z)
-		rotate(-powertrain_angle*z)
 		motor();
 	}
 
@@ -225,7 +228,20 @@ module cam(){
 	}
 }
 
-
+module hobbedrod_collar(){	
+	difference(){
+		cylinder(d=20,h=15);
+		cylinder(d=hobbedrod_d, h=indeterminate, center=true)
+		//nut catch
+		translate(8.5*x + (17-7/2)*z)
+		translate(-7/2*(x+y))
+			cube([3.2,7,indeterminate]);
+		//set screw
+		translate(10*z)
+		rotate(90*y)
+			cylinder(d=3, h=indeterminate,$fn=10);
+	}
+}
 
 module bull(){
 	difference(){
