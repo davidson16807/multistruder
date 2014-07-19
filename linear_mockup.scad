@@ -35,7 +35,7 @@ filament_space = linear_bearing_h+2*clearance;
 
 motor_x = 42;
 
-bull_r = 45*275/360;
+bull_r = 47*275/360;
 pinion_r = 10*275/360;
 
 hobbedrod_idler_edge_space = hobbedrod_d/2 + roller_bearing_od + min_width;
@@ -48,7 +48,7 @@ hobbedrod_screw_offset = [(roller_bearing_od/2), -(roller_bearing_od/2+ min_widt
 powertrain_angle = 135;		//angle formed between leadscrew, hobbed rod, and pinion of powertrain motor
 
 
-mockup();
+filament_guide_printable();
 
 module mockup(){
 
@@ -207,6 +207,11 @@ module motor_mount_template(){
 		}
 }
 
+
+module cam_printable(){
+	rotate(90*x)
+		cam();
+}
 module cam(){
 	difference(){
 		//body
@@ -246,7 +251,7 @@ module hobbedrod_collar(){
 
 module bull(){
 	difference(){
-		gear (number_of_teeth=45,
+		gear (number_of_teeth=47,
 			circular_pitch=275,
 			circles=5,
 				bore_diameter=8,
@@ -366,17 +371,32 @@ module filament_guide(){
 					roller_bearing_od + 2*(3 + 2*min_width), 
 					roller_bearing_h +filament_d], center=true);
 		}
-		//screws
-		assign($fn=10){
-			translate(hobbedrod_screw_offset)
-				cylinder(d=3,h=indeterminate,center=true);
-			mirror(x)
-			translate(hobbedrod_screw_offset)
-				cylinder(d=3,h=30,center=true);
-			mirror(x)
-			mirror(y)
-			translate(hobbedrod_screw_offset)
-				cylinder(d=3,h=30,center=true);
+		mirror(z)
+		filament_guide_screws();
+		filament_guide_screws();
+	}
+}
+
+module filament_guide_screws(){
+	//screws
+	assign($fn=10){
+		translate(hobbedrod_screw_offset){
+			cylinder(d=3,h=indeterminate,center=true);
+			translate((linear_bearing_h/2-2)*z)
+					cylinder(d=6, h=indeterminate);
+		}
+		mirror(x)
+		translate(hobbedrod_screw_offset){
+			cylinder(d=3,h=indeterminate,center=true);
+			translate((linear_bearing_h/2-2)*z)
+				cylinder(d=6, h=indeterminate);
+		}
+		mirror(x)
+		mirror(y)
+		translate(hobbedrod_screw_offset){
+			cylinder(d=3,h=indeterminate,center=true);
+			translate((linear_bearing_h/2-2)*z)
+				cylinder(d=6, h=indeterminate);
 		}
 	}
 }
